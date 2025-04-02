@@ -70,9 +70,15 @@ export default function HomeScreen({ navigation }) {
       }
     } catch (error) {
       setError(error.message);
+      console.error('Error fetching videos:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers
+      });
       Alert.alert(
         'Error',
-        'Failed to fetch videos. Please try again later.',
+        `Failed to fetch videos: ${error.response?.data?.error?.message || error.message}`,
         [{ text: 'OK' }]
       );
       console.error('Error fetching videos:', error);
