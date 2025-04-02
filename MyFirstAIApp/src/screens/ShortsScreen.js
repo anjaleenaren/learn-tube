@@ -19,9 +19,12 @@ import { YOUTUBE_CONFIG } from '../utils/config';
 
 const { width, height } = Dimensions.get('window');
 // Calculate dimensions for vertical video (9:16 aspect ratio)
-const videoHeight = height * 0.8;
-const videoWidth = (videoHeight * 9) / 16;
-
+const WIDTH_MULTIPLIER = 1.5;
+const videoWidth = width * WIDTH_MULTIPLIER;
+const HEADER_HEIGHT = Platform.OS === 'android' ? 350 : 340;
+const videoHeight = height - HEADER_HEIGHT;
+// Calculate the offset needed to center the video
+const VIDEO_OFFSET = (videoWidth - width) / 2;
 const CATEGORIES = [
   { id: '27', name: 'Education', color: '#4CAF50' },
   { id: '25', name: 'News', color: '#2196F3' },
@@ -249,7 +252,7 @@ export default function ShortsScreen() {
   );
 
   const renderShort = ({ item, index }) => (
-    <View style={styles.shortContainer}>
+    <View style={[styles.shortContainer, { height: videoHeight }]}>
       <View style={styles.videoWrapper}>
         <YoutubePlayer
           height={videoHeight}
@@ -268,6 +271,7 @@ export default function ShortsScreen() {
             playsinline: 1,
             loop: 1,
           }}
+          style={styles.video}
         />
       </View>
       <View style={styles.shortInfo}>
@@ -325,27 +329,29 @@ export default function ShortsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {renderFilters()}
-      <FlatList
-        ref={flatListRef}
-        data={shorts}
-        renderItem={renderShort}
-        keyExtractor={(item) => item.id.videoId}
-        pagingEnabled
-        snapToAlignment="center"
-        decelerationRate="fast"
-        snapToInterval={height}
-        showsVerticalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{
-          itemVisiblePercentThreshold: 50
-        }}
-        ListEmptyComponent={() => (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No shorts available</Text>
-          </View>
-        )}
-      />
+      <View style={styles.content}>
+        {renderFilters()}
+        <FlatList
+          ref={flatListRef}
+          data={shorts}
+          renderItem={renderShort}
+          keyExtractor={(item) => item.id.videoId}
+          pagingEnabled
+          snapToAlignment="center"
+          decelerationRate="fast"
+          snapToInterval={videoHeight}
+          showsVerticalScrollIndicator={false}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={{
+            itemVisiblePercentThreshold: 50
+          }}
+          ListEmptyComponent={() => (
+            <View style={[styles.emptyContainer, { height: videoHeight }]}>
+              <Text style={styles.emptyText}>No shorts available</Text>
+            </View>
+          )}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -355,12 +361,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
+  content: {
+    flex: 1,
+  },
   filtersContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    paddingTop: Platform.OS === 'android' ? 25 : 0, // Add padding for Android status bar
+    paddingTop: Platform.OS === 'android' ? 25 : 0,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    zIndex: 1,
   },
   filtersContent: {
-    paddingBottom: 5,
+    paddingBottom: 10,
   },
   filtersScrollView: {
     paddingHorizontal: 10,
@@ -412,32 +424,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   shortContainer: {
-    height: height,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: width,
     backgroundColor: '#000',
+    marginTop: 0,
+    overflow: 'hidden',
   },
   videoWrapper: {
     width: videoWidth,
-    height: videoHeight,
+    height: '100%',
     backgroundColor: '#000',
-    overflow: 'hidden',
-    borderRadius: 8,
+    marginLeft: -VIDEO_OFFSET, // Center the video by shifting left by half the difference between video and screen width
+  },
+  video: {
+    alignSelf: 'center',
   },
   shortInfo: {
     position: 'absolute',
-    bottom: 80,
-    left: 20,
-    right: 20,
-    padding: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 8,
+    bottom: 60, // Adjusted to be closer to the bottom
+    left: 16,
+    right: 16,
+    padding: 0,
+    backgroundColor: 'transparent',
   },
   shortTitle: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
