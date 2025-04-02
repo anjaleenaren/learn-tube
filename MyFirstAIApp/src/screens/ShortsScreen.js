@@ -60,25 +60,87 @@ export default function ShortsScreen() {
       setLoading(true);
       setError(null);
 
-      const response = await axios.get(YOUTUBE_CONFIG.API_URL, {
-        params: {
-          part: 'snippet',
-          maxResults: 20,
-          q: `${query} #shorts`,
-          type: 'video',
-          key: YOUTUBE_CONFIG.API_KEY,
-          videoDuration: 'short',
-          order: 'relevance',
-          videoCategoryId: selectedCategory?.id,
-          relevanceLanguage: selectedLanguage.code,
-        },
-      });
+      // Build search terms to prioritize quality content
+      const searchTerms = [
+        query,
+        '#shorts',
+        selectedCategory ? selectedCategory.name.toLowerCase() : '',
+        // Add educational terms if education category is selected
+        selectedCategory?.id === '27' ? 'educational learn tutorial' : ''
+      ].filter(Boolean).join(' ');
+
+      const params = {
+        part: 'snippet',
+        maxResults: 20,
+        q: searchTerms,
+        type: 'video',
+        key: YOUTUBE_CONFIG.API_KEY,
+        videoDuration: 'short',
+        order: query ? 'relevance' : 'date', // Use date for initial feed, relevance for searches
+        videoCategoryId: selectedCategory?.id,
+        relevanceLanguage: selectedLanguage.code,
+      };
+
+      console.log('Fetching shorts with params:', JSON.stringify(params, null, 2));
+
+      const response = await axios.get(YOUTUBE_CONFIG.API_URL, { params });
+
+      console.log('API Response:', JSON.stringify({
+        totalResults: response.data.pageInfo?.totalResults,
+        resultsPerPage: response.data.pageInfo?.resultsPerPage,
+        itemCount: response.data.items?.length
+      }, null, 2));
+
+      console.log('First 100 items:', JSON.stringify(response.data.items.slice(0, 100), null, 2));
 
       if (response.data.items) {
-        const shortsVideos = response.data.items.filter(item => 
-          item.snippet.title.toLowerCase().includes('#shorts') ||
-          item.snippet.description.toLowerCase().includes('#shorts')
-        );
+        // Enhanced filtering for better quality shorts
+        const shortsVideos = response.data.items.filter(item => {
+          const isShort = item.snippet.title.toLowerCase().includes('#shorts') ||
+                         item.snippet.description.toLowerCase().includes('#shorts');
+          
+          if (!isShort) {
+            console.log('Filtered out non-short:', item.snippet.title);
+            return false;
+          }
+
+          // Filter out potentially low-quality content
+          const title = item.snippet.title.toLowerCase();
+          const description = item.snippet.description.toLowerCase();
+          
+          // Skip videos with spammy titles (but be less aggressive)
+          if (
+            (title.includes('follow me') && title.includes('like')) ||
+            title.match(/!{3,}/) || // Three or more exclamation marks
+            (title.match(/\$\d+/) && !title.includes('tutorial')) // Dollar amounts unless it's a tutorial
+          ) {
+            console.log('Filtered out promotional content:', item.snippet.title);
+            return false;
+          }
+
+          // For educational category, prioritize educational content
+          if (selectedCategory?.id === '27') {
+            const isEducational = 
+              title.includes('learn') ||
+              title.includes('how to') ||
+              title.includes('tutorial') ||
+              title.includes('tips') ||
+              title.includes('guide') ||
+              description.includes('learn') ||
+              description.includes('tutorial') ||
+              description.includes('education') ||
+              description.includes('how to');
+            
+            if (!isEducational) {
+              console.log('Filtered out non-educational content:', item.snippet.title);
+              return false;
+            }
+          }
+
+          return true;
+        });
+
+        console.log(`Filtered ${response.data.items.length - shortsVideos.length} videos based on quality criteria`);
         setShorts(shortsVideos);
       }
     } catch (error) {
@@ -99,37 +161,103 @@ export default function ShortsScreen() {
       setLoading(true);
       setError(null);
 
+      console.log('Searching for channel:', query);
+
+      // Add quality terms to channel search
+      const channelSearchTerms = [
+        query,
+        selectedCategory?.id === '27' ? 'education educational learning' : '',
+        selectedCategory?.name || ''
+      ].filter(Boolean).join(' ');
+
       const response = await axios.get(YOUTUBE_CONFIG.API_URL, {
         params: {
           part: 'snippet',
           maxResults: 20,
-          q: query,
+          q: channelSearchTerms,
           type: 'channel',
           key: YOUTUBE_CONFIG.API_KEY,
         },
       });
 
       if (response.data.items && response.data.items.length > 0) {
-        // Get the first channel's uploads
         const channelId = response.data.items[0].id.channelId;
-        const shortsResponse = await axios.get(YOUTUBE_CONFIG.API_URL, {
-          params: {
-            part: 'snippet',
-            maxResults: 20,
-            channelId: channelId,
-            q: '#shorts',
-            type: 'video',
-            key: YOUTUBE_CONFIG.API_KEY,
-            videoDuration: 'short',
-            order: 'date',
-          },
-        });
+        console.log('Found channel ID:', channelId);
+        
+        // Build search terms for channel's shorts
+        const shortsSearchTerms = [
+          '#shorts',
+          selectedCategory ? selectedCategory.name.toLowerCase() : '',
+          selectedCategory?.id === '27' ? 'educational learn tutorial' : ''
+        ].filter(Boolean).join(' ');
+
+        const params = {
+          part: 'snippet',
+          maxResults: 20,
+          channelId: channelId,
+          q: shortsSearchTerms,
+          type: 'video',
+          key: YOUTUBE_CONFIG.API_KEY,
+          videoDuration: 'short',
+          order: 'date',
+          videoCategoryId: selectedCategory?.id,
+          relevanceLanguage: selectedLanguage.code,
+        };
+
+        console.log('Fetching channel shorts with params:', JSON.stringify(params, null, 2));
+
+        const shortsResponse = await axios.get(YOUTUBE_CONFIG.API_URL, { params });
+
+        console.log('Channel shorts response:', JSON.stringify({
+          totalResults: shortsResponse.data.pageInfo?.totalResults,
+          resultsPerPage: shortsResponse.data.pageInfo?.resultsPerPage,
+          itemCount: shortsResponse.data.items?.length
+        }, null, 2));
 
         if (shortsResponse.data.items) {
-          const shortsVideos = shortsResponse.data.items.filter(item => 
-            item.snippet.title.toLowerCase().includes('#shorts') ||
-            item.snippet.description.toLowerCase().includes('#shorts')
-          );
+          const shortsVideos = shortsResponse.data.items.filter(item => {
+            const isShort = item.snippet.title.toLowerCase().includes('#shorts') ||
+                          item.snippet.description.toLowerCase().includes('#shorts');
+            
+            if (!isShort) {
+              console.log('Filtered out non-short:', item.snippet.title);
+              return false;
+            }
+
+            // Filter out potentially low-quality content
+            const title = item.snippet.title.toLowerCase();
+            const description = item.snippet.description.toLowerCase();
+            
+            // Skip videos with spammy titles
+            if (title.includes('follow') && title.includes('like') ||
+                title.match(/!!+/) || // Multiple exclamation marks
+                title.match(/\$\d+/) // Dollar amounts in title
+            ) {
+              console.log('Filtered out promotional content:', item.snippet.title);
+              return false;
+            }
+
+            // For educational category, prioritize educational content
+            if (selectedCategory?.id === '27') {
+              const isEducational = 
+                title.includes('learn') ||
+                title.includes('how to') ||
+                title.includes('tutorial') ||
+                title.includes('tips') ||
+                description.includes('learn') ||
+                description.includes('tutorial') ||
+                description.includes('education');
+              
+              if (!isEducational) {
+                console.log('Filtered out non-educational content:', item.snippet.title);
+                return false;
+              }
+            }
+
+            return true;
+          });
+          
+          console.log(`Filtered ${shortsResponse.data.items.length - shortsVideos.length} videos based on quality criteria`);
           setShorts(shortsVideos);
         }
       } else {
@@ -149,7 +277,13 @@ export default function ShortsScreen() {
   };
 
   useEffect(() => {
-    fetchShorts(searchQuery);
+    if (searchMode === 'content' && searchQuery) {
+      fetchShorts(searchQuery);
+    } else if (searchMode === 'channel' && channelQuery) {
+      searchChannels(channelQuery);
+    } else {
+      fetchShorts('');
+    }
   }, [selectedCategory, selectedLanguage]);
 
   const renderSearchBar = () => (
@@ -160,7 +294,12 @@ export default function ShortsScreen() {
             styles.searchTab, 
             searchMode === 'content' && styles.activeSearchTab
           ]}
-          onPress={() => setSearchMode('content')}
+          onPress={() => {
+            setSearchMode('content');
+            if (searchQuery) {
+              fetchShorts(searchQuery);
+            }
+          }}
         >
           <Text style={[
             styles.searchTabText,
