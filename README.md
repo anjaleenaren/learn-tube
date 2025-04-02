@@ -2,6 +2,8 @@
 
 Let me introduce you to **LearnTube** - because who said learning can't be as addictive as your regular YouTube scroll?
 
+https://github.com/user-attachments/assets/12f30773-3790-45af-89ee-d4753b15e6b5
+
 ## **What's This All About?**
 
 Think YouTube, but make it *smart*. LearnTube is your pocket-sized education companion that curates educational content from trusted channels. No more falling down random rabbit holes of cat videos (though they're adorable) when you're supposed to be learning about quantum physics!
