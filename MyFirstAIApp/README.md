@@ -1,23 +1,30 @@
 # LearnTube 📚
 
-LearnTube is a modern, educational video platform that curates high-quality educational content from YouTube, making learning more accessible and engaging. Built with React Native and Expo, it offers a seamless mobile experience for both iOS and Android users.
+Let me introduce you to **LearnTube** - because who said learning can't be as addictive as your regular YouTube scroll?
 
-## Features 🌟
+## **What's This All About?**
 
-- **Curated Educational Content**: Access videos from trusted educational channels across various categories:
-  - Education
-  - News
-  - Science & Technology
+Think YouTube, but make it *smart*. LearnTube is your pocket-sized education companion that curates educational content from trusted channels. No more falling down random rabbit holes of cat videos (though they're adorable) when you're supposed to be learning about quantum physics!
 
-- **Smart Video Discovery**:
-  - Category-based filtering
-  - Multi-language support
-  - Intelligent search functionality
-  - Clean and intuitive interface
+## **The Cool Stuff**
 
-- **Dual Viewing Modes**:
-  - Traditional video player for in-depth learning
-  - Shorts format for quick knowledge bites
+- 🎓 **Curated Educational Content**: Focused on three main categories:
+  - Education (featuring channels like CrashCourse and MIT OpenCourseWare)
+  - News (keeping you informed with CNN and Bloomberg)
+  - Science & Tech (mind-bending content from Veritasium and SciShow)
+  
+- 🎯 **Smart Filtering**: Only shows content from trusted educational channels
+- 📱 **Clean Interface**: Because learning shouldn't be complicated
+- 🎬 **Shorts Support**: For when you need quick knowledge bites
+
+## **Try It Yourself!**
+
+The app is live and ready for you to explore at:
+[LearnTube on Expo](https://expo.dev/accounts/anjaleenaren/projects/learntube/updates/d1e2f17b-f468-44dd-9ac5-c5408a78ca51)
+
+## **Behind the Scenes**
+
+Built with React Native and Expo, this app is my attempt at making education more accessible and engaging. It uses the YouTube Data API to fetch content but with a twist - it only pulls from carefully selected educational channels.
 
 ## Tech Stack 💻
 
@@ -31,7 +38,7 @@ LearnTube is a modern, educational video platform that curates high-quality educ
 
 ## Getting Started 🚀
 
-1. Clone the repository
+1. Clone the repository and install expo if you haven't already
 2. Install dependencies:
    ```bash
    npm install
@@ -39,7 +46,8 @@ LearnTube is a modern, educational video platform that curates high-quality educ
 3. Set up your YouTube API key in `src/utils/config.js`
 4. Start the development server:
    ```bash
-   npm start
+   npm expo install
+   npm expo start
    ```
 
 ## Platform Support 📱
@@ -50,7 +58,3 @@ LearnTube is a modern, educational video platform that curates high-quality educ
 ## Contributing 🤝
 
 Feel free to submit issues and enhancement requests!
-
-## License 📄
-
-This project is licensed under the BSD License - see the LICENSE file for details. 
